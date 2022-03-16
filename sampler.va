@@ -1,0 +1,31 @@
+// VerilogA for IN5220, Sampler_FD, veriloga
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+module Sampler_FD (VIP, VIN, CLK, VO, VDD, VSS);
+	input VIP, VIN, CLK;
+	output VO;
+	inout VDD, VSS;
+	electrical VIP, VIN, CLK, VO, VDD, VSS;
+	
+	real MID, SAMP, CP, SP, SN;
+	
+	integer file;
+
+	analog begin
+		@(initial_step) begin
+         	MID = (V(VDD) - V(VSS))/2.0;
+			file = $fopen("Test1.csv"); // Change name to avoid overwriting previous test
+		end
+		@(cross((V(CLK)-MID),-1)) begin // -1 = falling edge, +1 = rising edge
+			CP = $abstime;
+			SP = V(VIP);
+ 			SN = V(VIN);
+			SAMP = V(VIP) - V(VIN);
+			$fwrite(file,"%e;%e;%e \n",CP, SP, SN);
+		end		
+		V(VO) <+ SAMP;
+	end
+
+endmodule
